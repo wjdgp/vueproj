@@ -1,0 +1,188 @@
+<template>
+  <div>
+    <h1>부서관리</h1>
+    <div style="margin-bottom: 5px">
+      <b-row>
+        <b-col style="text-align: left"
+          ><b-button variant="primary" size="sm" @click="searchDepartmentList">검색</b-button></b-col
+        >
+        <b-col style="text-align: right"
+          ><b-button variant="success" size="sm" @click="onClickAddNew">신규등록</b-button></b-col
+        >
+      </b-row>
+    </div>
+    <div>
+      <b-table small hover striped :items="departmentList" :fields="fields">
+        <template #cell(createdAt)="row">
+          <!---row는 내마음대로 제어가능 row로 되어있어서 그렇게 적은것--->
+          {{ row.item.createdAt.substring(0, 10) }}
+        </template>
+        <template #cell(updateBtn)="row">
+          <b-button size="sm" variant="success" @click="onClickEdit(row.item.id)">수정</b-button>
+        </template>
+        <template #cell(deleteBtn)="row">
+          <b-button size="sm" variant="danger" @click="onClickDelete(row.item.id)">삭제</b-button>
+        </template>
+      </b-table>
+    </div>
+    <inform />
+  </div>
+</template>
+
+<script>
+import inform from './inform.vue'
+
+export default {
+  components: {
+    inform: inform
+  },
+  data() {
+    return {
+      fields: [
+        { key: 'id', label: 'id' },
+        { key: 'name', label: '이름' },
+        { key: 'Department', label: '부서' },
+        { key: 'userid', label: '아이디' },
+        { key: 'role', label: '권한' },
+        { key: 'email', label: '이메일' },
+        { key: 'createdAt', label: '생성일' },
+        { key: 'updateBtn', label: '수정' },
+        { key: 'deleteBtn', label: '삭제' }
+      ]
+    }
+  },
+  computed: {
+    departmentList() {
+      return this.$store.getters.DepartmentList
+    },
+    insertedResult() {
+      return this.$store.getters.DepartmentInsertedResult
+    },
+    updatedResult() {
+      return this.$store.getters.DepartmentUpdatedResult
+    },
+    deletedResult() {
+      return this.$store.getters.DepartmentDeletedResult
+    }
+  },
+  watch: {
+    insertedResult(value) {
+      // 등록 후 처리
+      if (value !== null) {
+        if (value > 0) {
+          // 등록이 성공한 경우
+
+          // 1. 메세지 출력
+          this.$bvToast.toast('등록 되었습니다', {
+            title: 'SUCCESS',
+            variant: 'success',
+            solid: true
+          })
+
+          // 2. 리스트 재 검색
+          this.searchDepartmentList()
+        } else {
+          // 등록이 실패한 경우
+          this.$bvToast.toast('등록이 실패하였습니다.', {
+            title: 'ERROR',
+            variant: 'danger',
+            solid: true
+          })
+        }
+      }
+    },
+    updatedResult(value) {
+      // 수정 후 처리
+      if (value !== null) {
+        if (value > 0) {
+          // 수정이 성공한 경우
+
+          // 1. 메세지 출력
+          this.$bvToast.toast('수정 되었습니다.', {
+            title: 'SUCCESS',
+            variant: 'success',
+            solid: true
+          })
+
+          // 2. 리스트 재 검색
+          this.searchDepartmentList()
+        } else {
+          // 수정이 실패한 경우
+          this.$bvToast.toast('수정이 실패하였습니다.', {
+            title: 'ERROR',
+            variant: 'danger',
+            solid: true
+          })
+        }
+      }
+    },
+    deletedResult(value) {
+      // 삭제 후 처리
+      if (value !== null) {
+        if (value > 0) {
+          // 삭제가 성공한 경우
+
+          // 1. 메세지 출력
+          this.$bvToast.toast('삭제 되었습니다.', {
+            title: 'SUCCESS',
+            variant: 'success',
+            solid: true
+          })
+
+          // 2. 리스트 재 검색
+          this.searchDepartmentList()
+        } else {
+          // 삭제가 실패한 경우
+          this.$bvToast.toast('삭제가 실패하였습니다.', {
+            title: 'ERROR',
+            variant: 'danger',
+            solid: true
+          })
+        }
+      }
+    }
+  },
+  created() {
+    this.searchDepartmentList()
+  },
+  methods: {
+    searchDepartmentList() {
+      this.$store.dispatch('actDepartmentList')
+    },
+    onClickAddNew() {
+      // 신규등록
+
+      // 1. 입력모드 설정
+      this.$store.dispatch('actDepartmentInputMode', 'insert')
+
+      // 2. 상세정보 초기화
+      this.$store.dispatch('actDepartmentInit')
+
+      // 3. 모달 출력
+      this.$bvModal.show('modal-department-inform')
+    },
+    onClickEdit(id) {
+      // (수정을 위한)상세정보
+
+      // 1. 입력모드 설정
+      this.$store.dispatch('actDepartmentInputMode', 'update')
+
+      // 2. 상세정보 호출
+      this.$store.dispatch('actDepartmentInfo', id)
+
+      // 3. 모달 출력
+      this.$bvModal.show('modal-department-inform')
+    },
+    onClickDelete(id) {
+      // 삭제
+      this.$bvModal.msgBoxConfirm('삭제 하시겠습니까?').then(value => {
+        if (value) {
+          this.$store.dispatch('actDepartmentDelete', id)
+        }
+      })
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped></style>
